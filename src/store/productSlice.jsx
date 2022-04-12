@@ -1,4 +1,4 @@
-const { createSlice } = require("@reduxjs/toolkit");
+const { createSlice, createAsyncThunk } = require("@reduxjs/toolkit");
 
 export const STATUSES = Object.freeze({
   IDLE: "idle",
@@ -12,39 +12,67 @@ const productSlice = createSlice({
     data: [],
     status: STATUSES.IDLE,
   },
-  reducers: {
-    setProducts(state, action) {
-      state.data = action.payload;
-    },
-
-    setStatus(state, action) {
-      state.status = action.payload;
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchProducts.pending, (state, action) => {
+        state.status = STATUSES.LOADING;
+      })
+      .addCase(fetchProducts.fulfilled, (state, action) => {
+        state.data = action.payload;
+        state.status = STATUSES.IDLE;
+      })
+      .addCase(fetchProducts.rejected, (state, action) => {
+        state.status = STATUSES.ERROR;
+      });
   },
 });
+// const productSlice = createSlice({
+//   name: "product",
+//   initialState: {
+//     data: [],
+//     status: STATUSES.IDLE,
+//   },
+//   reducers: {
+//     setProducts(state, action) {
+//       state.data = action.payload;
+//     },
+
+//     setStatus(state, action) {
+//       state.status = action.payload;
+//     },
+//   },
+// });
 
 export const { setProducts, setStatus } = productSlice.actions;
 export default productSlice.reducer;
 
 // Thunk
 
-export function fetchProducts() {
-  return async function fetchProductThunk(dispatch, getState) {
-    dispatch(setStatus(STATUSES.LOADING));
+export const fetchProducts = createAsyncThunk("products/fetch", async () => {
+  const res = await fetch("https://fakestoreapi.com/products");
 
-    // const prop = getState();
+  const data = await res.json();
+  return data;
+});
 
-    try {
-      const res = await fetch("https://fakestoreapi.com/products");
+// export function fetchProducts() {
+//   return async function fetchProductThunk(dispatch, getState) {
+//     dispatch(setStatus(STATUSES.LOADING));
 
-      const data = await res.json();
+//     // const prop = getState();
 
-      dispatch(setProducts(data));
-      dispatch(setStatus(STATUSES.IDLE));
-    } catch (error) {
-      console.log(error);
+//     try {
+//       const res = await fetch("https://fakestoreapi.com/products");
 
-      dispatch(setStatus(STATUSES.ERROR));
-    }
-  };
-}
+//       const data = await res.json();
+
+//       dispatch(setProducts(data));
+//       dispatch(setStatus(STATUSES.IDLE));
+//     } catch (error) {
+//       console.log(error);
+
+//       dispatch(setStatus(STATUSES.ERROR));
+//     }
+//   };
+// }
