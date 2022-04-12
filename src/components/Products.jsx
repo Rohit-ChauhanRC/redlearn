@@ -2,13 +2,15 @@ import React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 import { add } from "../store/cartSlice";
-import { useDispatch } from "react-redux";
-import { fetchProducts } from "../store/productSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts, STATUSES } from "../store/productSlice";
 
 const Products = () => {
   const dispatch = useDispatch();
 
-  const [products, setProducts] = useState([]);
+  const { data: products, status } = useSelector((state) => state.product);
+
+  // const [products, setProducts] = useState([]);
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -29,6 +31,13 @@ const Products = () => {
     dispatch(add(product));
   };
 
+  if (status === STATUSES.LOADING) {
+    return <h2>Loading...</h2>;
+  }
+
+  if (status === STATUSES.ERROR) {
+    return <h2>Something went wrong!</h2>;
+  }
   return (
     <div className="productsWrapper">
       {products.map((product) => (
